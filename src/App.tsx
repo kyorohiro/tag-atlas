@@ -42,7 +42,6 @@ export default function App() {
     []
   );
 
-  /*
   const chooseFolder = async () => {
     console.log('> chooseFolder');
     try {
@@ -51,7 +50,7 @@ export default function App() {
       const result = await open({
         directory: true,
         multiple: false,
-        //title: "Select Folder",
+        title: "Select Folder",
       });
       console.log(result);
 
@@ -63,20 +62,7 @@ export default function App() {
       setError(String(e));
     }
   };
-  */
-  async function chooseFolder() {
-    try {
-      const result = await open({
-        directory: true,
-        multiple: false,
-        title: "Select Folder",
-      });
 
-      console.log("dialog result:", result);
-    } catch (e) {
-      console.error("dialog open failed:", e);
-    }
-  }
   useEffect(() => {
     let unlisten: (() => void) | undefined;
 
