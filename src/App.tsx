@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import "./App.css";
+import { useDialog } from "./useDialog";
 
 type UiText = {
   titleJa: string;
@@ -28,22 +28,18 @@ const text: UiText = {
 };
 
 function isLikelyFolderPath(path: string): boolean {
-  // 今は最小版なので雑でOK
-  // 後で fs.stat などで厳密に判定
   return !!path && !/\.[^/\\]+$/.test(path);
 }
 
 export default function App() {
   const [selectedPath, setSelectedPath] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const dialog = useDialog();
 
-  const title = useMemo(
-    () => `${text.titleJa}\n${text.titleEn}`,
-    []
-  );
+  const title = useMemo(() => `${text.titleJa}\n${text.titleEn}`, []);
 
   const chooseFolder = async () => {
-    console.log('> chooseFolder');
+    console.log("> chooseFolder");
     try {
       setError("");
 
@@ -91,34 +87,71 @@ export default function App() {
   }, []);
 
   return (
-    <main className="container">
-      <h1>tag-atlas</h1>
+    <main className="min-h-screen bg-zinc-100 px-4 py-8 text-zinc-900">
+      <div className="mx-auto max-w-3xl">
+        <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm sm:p-8">
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            tag-atlas
+          </h1>
 
-      <p className="lead" style={{ whiteSpace: "pre-line" }}>
-        {title}
-      </p>
+          <p className="mt-4 whitespace-pre-line text-base leading-7 text-zinc-700">
+            {title}
+          </p>
 
-      <button onClick={chooseFolder}>{text.button}</button>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button
+              onClick={chooseFolder}
+              className="inline-flex items-center justify-center rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-900 shadow-sm transition hover:bg-zinc-50 active:bg-zinc-100"
+            >
+              {text.button}
+            </button>
 
-      <div className="dropzone">
-        <div>{text.dropHereJa}</div>
-        <div>{text.dropHereEn}</div>
+            <button
+              onClick={() => {
+                dialog.showConfirmDialog({
+                  title: "hello",
+                  body: "test",
+                });
+              }}
+              className="inline-flex items-center justify-center rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-900 shadow-sm transition hover:bg-zinc-50 active:bg-zinc-100"
+            >
+              test dialog
+            </button>
+          </div>
+
+          <div className="mt-6 rounded-2xl border-2 border-dashed border-zinc-300 bg-zinc-50 px-6 py-10 text-center">
+            <div className="text-base font-medium text-zinc-800">
+              {text.dropHereJa}
+            </div>
+            <div className="mt-2 text-sm text-zinc-500">
+              {text.dropHereEn}
+            </div>
+          </div>
+
+          {selectedPath ? (
+            <section className="mt-6 rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+              <div className="text-sm font-semibold text-zinc-800">
+                {text.selectedJa}
+              </div>
+              <div className="mt-1 text-sm text-zinc-500">
+                {text.selectedEn}
+              </div>
+              <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-all rounded-xl bg-white p-3 text-sm text-zinc-700">
+                {selectedPath}
+              </pre>
+            </section>
+          ) : null}
+
+          {error ? (
+            <section className="mt-6 rounded-2xl border border-red-300 bg-red-50 p-4">
+              <div className="text-sm font-semibold text-red-700">Error</div>
+              <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-all rounded-xl bg-white p-3 text-sm text-red-700">
+                {error}
+              </pre>
+            </section>
+          ) : null}
+        </div>
       </div>
-
-      {selectedPath ? (
-        <section className="panel">
-          <div className="label">{text.selectedJa}</div>
-          <div className="label">{text.selectedEn}</div>
-          <pre>{selectedPath}</pre>
-        </section>
-      ) : null}
-
-      {error ? (
-        <section className="panel error">
-          <div className="label">Error</div>
-          <pre>{error}</pre>
-        </section>
-      ) : null}
     </main>
   );
 }
