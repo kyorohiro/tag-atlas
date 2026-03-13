@@ -8,12 +8,13 @@ import {
 
 export type Language = "ja" | "en";
 
-type AppState = {
+export type AppState = {
   selectedFolder: string;
   language: Language;
 };
 
 type AppActions = {
+  initialize: (state: Partial<AppState>) => void;
   setSelectedFolder: (path: string) => void;
   setLanguage: (lang: Language) => void;
 };
@@ -35,6 +36,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const actions = useMemo<AppActions>(
     () => ({
+      initialize: (next) => {
+        if (typeof next.selectedFolder === "string") {
+          setSelectedFolder(next.selectedFolder);
+        }
+        if (next.language === "ja" || next.language === "en") {
+          setLanguage(next.language);
+        }
+      },
       setSelectedFolder,
       setLanguage,
     }),
