@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAppActions, useAppState, type AppState } from "./AppStateContext";
 import { ReadyPage } from "./ReadyPage";
+import { MainScreen } from "./MainScreen";
 
 async function loadSettings(): Promise<Partial<AppState>> {
   // TODO:
@@ -12,27 +13,6 @@ async function loadSettings(): Promise<Partial<AppState>> {
   };
 }
 
-function MainScreen() {
-  const appState = useAppState();
-
-  return (
-    <main className="min-h-screen bg-zinc-100 p-8 text-zinc-900">
-      <div className="mx-auto max-w-3xl rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-bold">tag-atlas</h1>
-
-        <div className="mt-6 rounded-xl border p-4">
-          <div>selectedFolder:</div>
-          <pre>{appState.selectedFolder || "(empty)"}</pre>
-        </div>
-
-        <div className="mt-4 rounded-xl border p-4">
-          <div>language:</div>
-          <pre>{appState.language}</pre>
-        </div>
-      </div>
-    </main>
-  );
-}
 
 export default function App() {
   const appActions = useAppActions();
