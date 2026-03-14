@@ -6,7 +6,7 @@ import { useDialog } from "./useDialog";
 import Database from "@tauri-apps/plugin-sql";
 import { openInFileManager } from "./openPath";
 
-export function MainScreen() {
+export function MainPage() {
     const appState = useAppState();
     const appActions = useAppActions();
     const [dbPath, setDbPath] = useState("");

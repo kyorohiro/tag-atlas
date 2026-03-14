@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAppActions, useAppState, type AppState } from "./AppStateContext";
 import { ReadyPage } from "./ReadyPage";
-import { MainScreen } from "./MainScreen";
+import { MainPage } from "./MainPage";
 import { loadAppSettings } from "./appSettingsStore";
 
 
@@ -79,5 +79,5 @@ export default function App() {
   if (!appState.selectedFolder) {
      return <ReadyPage />
   }
-  return <MainScreen />;
+  return <MainPage />;
 }
