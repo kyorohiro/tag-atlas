@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useAppState } from "./AppStateContext";
-import { addTagToPath, ensureWorkspaceDb } from "./db";
+import { addTagToPath, ensureWorkspaceDb, searchPathsByTag } from "./db";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useDialog } from "./useDialog";
 import Database from "@tauri-apps/plugin-sql";
@@ -11,6 +11,13 @@ export function MainScreen() {
   const [db, setDb] = useState<Database | null>(null);
   const [dbReady, setDbReady] = useState(false);
   const [dbError, setDbError] = useState("");
+  const [searchText, setSearchText] = useState("");
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
+  const [searchResults, setSearchResults] = useState<
+    { path: string; tag: string; created_at: string }[]
+  >([]);
+
   const dialog = useDialog();
 
   const dbRef = useRef<Database | null>(null);
@@ -29,47 +36,54 @@ export function MainScreen() {
     let cleanup: (() => void) | undefined;
 
     (async () => {
-      const unlisten = await getCurrentWindow().onDragDropEvent(async (event) => {
-        if (event.payload.type !== "drop") return;
+      const unlisten = await getCurrentWindow().onDragDropEvent(
+        async (event) => {
+          if (event.payload.type !== "drop") return;
 
-        const currentDb = dbRef.current;
-        if (!currentDb) {
-          console.log(">> !currentDb");
-          return;
-        }
-
-        const paths = event.payload.paths ?? [];
-        if (paths.length === 0) return;
-
-        const currentDialog = dialogRef.current;
-
-        await currentDialog.showConfirmDialog({
-          title: "selected path",
-          body: `${paths.join("\n")}`,
-        });
-
-        const tag = await currentDialog.showInputDialog({
-          title: "TAG を追加",
-        });
-
-        if (!tag || !tag.trim()) return;
-
-        try {
-          for (const path of paths) {
-            await addTagToPath(currentDb, path, tag);
+          const currentDb = dbRef.current;
+          if (!currentDb) {
+            console.log(">> !currentDb");
+            return;
           }
 
+          const paths = event.payload.paths ?? [];
+          if (paths.length === 0) return;
+
+          const currentDialog = dialogRef.current;
+
           await currentDialog.showConfirmDialog({
-            title: "完了",
-            body: `${paths.length} 件の path に tag "${tag}" を追加しました`,
+            title: "selected path",
+            body: `${paths.join("\n")}`,
           });
-        } catch (e) {
-          await currentDialog.showConfirmDialog({
-            title: "エラー",
-            body: String(e),
+
+          const tag = await currentDialog.showInputDialog({
+            title: "TAG を追加",
           });
-        }
-      });
+
+          if (!tag || !tag.trim()) return;
+
+          try {
+            for (const path of paths) {
+              await addTagToPath(currentDb, path, tag);
+            }
+
+            await currentDialog.showConfirmDialog({
+              title: "完了",
+              body: `${paths.length} 件の path に tag "${tag}" を追加しました`,
+            });
+
+            if (searchText.trim()) {
+              const rows = await searchPathsByTag(currentDb, searchText);
+              setSearchResults(rows);
+            }
+          } catch (e) {
+            await currentDialog.showConfirmDialog({
+              title: "エラー",
+              body: String(e),
+            });
+          }
+        },
+      );
 
       if (disposed) {
         unlisten();
@@ -83,7 +97,7 @@ export function MainScreen() {
       disposed = true;
       if (cleanup) cleanup();
     };
-  }, []);
+  }, [searchText]);
 
   useEffect(() => {
     let alive = true;
@@ -110,6 +124,40 @@ export function MainScreen() {
       alive = false;
     };
   }, [appState.selectedFolder]);
+
+  useEffect(() => {
+    let alive = true;
+
+    (async () => {
+      if (!db || !searchText.trim()) {
+        setSearchResults([]);
+        setSearchError("");
+        setSearching(false);
+        return;
+      }
+
+      try {
+        setSearching(true);
+        setSearchError("");
+
+        const rows = await searchPathsByTag(db, searchText);
+
+        if (!alive) return;
+        setSearchResults(rows);
+      } catch (e) {
+        if (!alive) return;
+        setSearchError(String(e));
+        setSearchResults([]);
+      } finally {
+        if (!alive) return;
+        setSearching(false);
+      }
+    })();
+
+    return () => {
+      alive = false;
+    };
+  }, [db, searchText]);
 
   if (dbError) {
     return (
@@ -156,6 +204,53 @@ export function MainScreen() {
         <div className="mt-4 rounded-xl border p-4">
           <div>language:</div>
           <pre>{appState.language}</pre>
+        </div>
+
+        <div className="mt-4 rounded-xl border p-4">
+          <div className="mb-2 font-semibold">TAG 検索</div>
+
+          <input
+            type="text"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            placeholder="tag を入力..."
+            className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 outline-none focus:border-zinc-500"
+          />
+
+          {searching && (
+            <div className="mt-3 text-sm text-zinc-500">検索中...</div>
+          )}
+
+          {searchError && (
+            <div className="mt-3 rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-700">
+              {searchError}
+            </div>
+          )}
+
+          {!searching && !searchError && searchText.trim() && (
+            <div className="mt-3 text-sm text-zinc-500">
+              {searchResults.length} 件
+            </div>
+          )}
+
+          <div className="mt-4 space-y-3">
+            {searchResults.map((item, index) => (
+              <div
+                key={`${item.path}:${item.tag}:${index}`}
+                className="rounded-xl border border-zinc-200 bg-zinc-50 p-3"
+              >
+                <div className="text-sm font-medium text-zinc-900">
+                  {item.tag}
+                </div>
+                <pre className="mt-2 whitespace-pre-wrap break-all text-sm text-zinc-700">
+                  {item.path}
+                </pre>
+                <div className="mt-2 text-xs text-zinc-500">
+                  added: {item.created_at}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </main>

@@ -181,3 +181,21 @@ export async function removeTagFromPath(
     [normalizedPath, normalizedTag],
   );
 }
+
+export async function searchPathsByTag(db: Database, keyword: string) {
+  const normalizedKeyword = keyword.trim();
+
+  if (!normalizedKeyword) {
+    return [];
+  }
+
+  return await db.select<{ path: string; tag: string; created_at: string }[]>(
+    `
+      SELECT path, tag, created_at
+      FROM path_tags
+      WHERE tag LIKE $1
+      ORDER BY path COLLATE NOCASE ASC, tag COLLATE NOCASE ASC
+    `,
+    [`%${normalizedKeyword}%`],
+  );
+}
