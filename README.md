@@ -23,6 +23,7 @@ Open the file location in Finder / Explorer
 
 tag-atlas keeps a small SQLite database in the root folder.
 
+```
 Example structure:
 
 root-folder/
@@ -30,6 +31,7 @@ root-folder/
 manga/
 images/
 videos/
+```
 
 Each file or folder can have multiple tags.
 
