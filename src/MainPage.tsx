@@ -54,13 +54,13 @@ export function MainPage() {
 
                     const currentDialog = dialogRef.current;
 
-                    await currentDialog.showConfirmDialog({
-                        title: "selected path",
-                        body: `${paths.join("\n")}`,
-                    });
+                    //await currentDialog.showConfirmDialog({
+                    //    title: "selected path",
+                    //    body: `${paths.join("\n")}`,
+                    //});
 
                     const tag = await currentDialog.showInputDialog({
-                        title: "TAG を追加",
+                        title: "Add TAG",
                     });
 
                     if (!tag || !tag.trim()) return;
@@ -100,7 +100,7 @@ export function MainPage() {
             disposed = true;
             if (cleanup) cleanup();
         };
-    }, [searchText]);
+    }, []);
 
     useEffect(() => {
         let alive = true;
