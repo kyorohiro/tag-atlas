@@ -1,12 +1,48 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAppState } from "./AppStateContext";
 import { ensureWorkspaceDb } from "./db";
+import { getCurrentWindow } from "@tauri-apps/api/window";
+import { useDialog } from "./useDialog";
 
 export function MainScreen() {
   const appState = useAppState();
   const [dbPath, setDbPath] = useState("");
   const [dbReady, setDbReady] = useState(false);
   const [dbError, setDbError] = useState("");
+  const dialog = useDialog();
+
+  //
+  const initialized = useRef(false);
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    (async () => {
+      if (initialized.current) {
+        return;
+      } else {
+        initialized.current = true;
+      }
+      unlisten = await getCurrentWindow().onDragDropEvent(async (event) => {
+        if (event.payload.type !== "drop") return;
+
+        const paths = event.payload.paths ?? [];
+        if (paths.length === 0) return;
+
+        await dialog.showConfirmDialog({
+            title: "selected path",
+            body: `${event.payload.paths}`,
+        });
+        const tag = await dialog.showInputDialog({
+            title: "TAG を 追加",
+        })
+        
+        /** ここに、path と tag を DB に追加  */
+      });
+    })();
+
+    return () => {
+      if (unlisten) unlisten();
+    };
+  }, []);
 
   useEffect(() => {
     let alive = true;

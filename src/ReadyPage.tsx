@@ -110,8 +110,8 @@ function ReadyPage() {
             </button>
 
             <button
-              onClick={() => {
-                dialog.showConfirmDialog({
+              onClick={async () => {
+                await dialog.showConfirmDialog({
                   title: "hello",
                   body: "test",
                 });

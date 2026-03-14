@@ -90,7 +90,7 @@ const TextInputDialog: React.FC<{
     const handleCancel = () => onCancel();
 
     return (
-        <div className="w-full max-w-sm rounded-2xl bg-slate-900 p-6 shadow-xl border border-slate-700">
+        <div className="w-full max-w-sm rounded-2xl bg-slate-900 p-6 shadow-xl border border-slate-700 text-white">
             <h2 className="text-lg font-semibold mb-3">
                 {options.title ?? "入力"}
             </h2>
