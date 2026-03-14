@@ -6,6 +6,7 @@ import { useDialog } from "./useDialog";
 import Database from "@tauri-apps/plugin-sql";
 import { openInFileManager } from "./openPath";
 import { TagEditDialog } from "./TagEditDialog";
+import { toAbsolutePath, toStoredPath } from "./utilsPath";
 
 export function MainPage() {
     const appState = useAppState();
@@ -67,7 +68,7 @@ export function MainPage() {
 
                     try {
                         for (const path of paths) {
-                            await addTagToPath(currentDb, path, tag);
+                            await addTagToPath(currentDb, toStoredPath(appState.selectedFolder, path), tag);
                         }
 
                         await currentDialog.showConfirmDialog({
@@ -251,7 +252,7 @@ export function MainPage() {
                                     className="rounded-lg border px-3 py-1 text-sm hover:bg-zinc-100"
                                     onClick={async () => {
                                         try {
-                                            await openInFileManager(item.path);
+                                            await openInFileManager(toAbsolutePath(appState.selectedFolder, item.path));
                                         } catch (e) {
                                             console.log(e);
                                             await dialog.showConfirmDialog({
