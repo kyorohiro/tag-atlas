@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { useDialog } from "./useDialog";
-import { useAppActions, useAppState } from "./AppStateContext";
+import { useAppActions } from "./AppStateContext";
 
 type UiText = {
   titleJa: string;
@@ -19,7 +18,7 @@ type UiText = {
 const text: UiText = {
   titleJa: "このアプリで管理するフォルダーを選択してください。",
   titleEn: "Please select a folder to manage with this app.",
-  button: "Folder",
+  button: "Folderを選択",
   dropHereJa: "ここにフォルダーをドラッグ＆ドロップ",
   dropHereEn: "Drag and drop a folder here",
   selectedJa: "選択されたフォルダー",
@@ -35,7 +34,6 @@ function isLikelyFolderPath(path: string): boolean {
 function ReadyPage() {
   const [selectedPath, setSelectedPath] = useState<string>("");
   const [error, setError] = useState<string>("");
-  const dialog = useDialog();
   const appStateActions = useAppActions();
 
   const title = useMemo(() => `${text.titleJa}\n${text.titleEn}`, []);
@@ -81,11 +79,14 @@ function ReadyPage() {
 
         setError("");
         setSelectedPath(firstPath);
+        appStateActions.setSelectedFolder(firstPath);
       });
     })();
 
     return () => {
-      if (unlisten) unlisten();
+      if (unlisten) {
+        unlisten();
+      }
     };
   }, []);
 
@@ -107,18 +108,6 @@ function ReadyPage() {
               className="inline-flex items-center justify-center rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-900 shadow-sm transition hover:bg-zinc-50 active:bg-zinc-100"
             >
               {text.button}
-            </button>
-
-            <button
-              onClick={async () => {
-                await dialog.showConfirmDialog({
-                  title: "hello",
-                  body: "test",
-                });
-              }}
-              className="inline-flex items-center justify-center rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-900 shadow-sm transition hover:bg-zinc-50 active:bg-zinc-100"
-            >
-              test dialog
             </button>
           </div>
 
