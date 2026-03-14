@@ -2,16 +2,7 @@ import { useEffect, useState } from "react";
 import { useAppActions, useAppState, type AppState } from "./AppStateContext";
 import { ReadyPage } from "./ReadyPage";
 import { MainScreen } from "./MainScreen";
-
-async function loadSettings(): Promise<Partial<AppState>> {
-  // TODO:
-  // ここで DB / store / file から読む
-  // 今は仮実装
-  return {
-    selectedFolder: "",
-    language: "ja",
-  };
-}
+import { loadAppSettings } from "./appSettingsStore";
 
 
 export default function App() {
@@ -21,6 +12,7 @@ export default function App() {
   const [initError, setInitError] = useState("");
 
   useEffect(() => {
+    console.log("> App useEffect")
     let alive = true;
 
     (async () => {
@@ -28,15 +20,24 @@ export default function App() {
         setLoading(true);
         setInitError("");
 
-        const settings = await loadSettings();
-        if (!alive) return;
+        const settings = await loadAppSettings();
+        if (!alive) {
+          console.log(">> !alive")
+          return;
+        }
 
         appActions.initialize(settings);
       } catch (e) {
-        if (!alive) return;
+        console.log(">> e", e);
+        if (!alive) {
+          console.log(">> !alive")
+          return;
+        }
         setInitError(String(e));
       } finally {
+        console.log(">> f")
         if (alive) {
+          console.log(">> alive")
           setLoading(false);
         }
       }

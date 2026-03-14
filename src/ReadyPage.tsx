@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useAppActions } from "./AppStateContext";
+import { loadAppSettings, saveAppSettings } from "./appSettingsStore";
 
 type UiText = {
   titleJa: string;
@@ -54,6 +55,9 @@ function ReadyPage() {
 
       setSelectedPath(result);
       appStateActions.setSelectedFolder(result);
+      const appSetting = await loadAppSettings();
+      appSetting.selectedFolder = result;
+      await saveAppSettings(appSetting);
     } catch (e) {
       console.log(e);
       setError(String(e));
@@ -64,7 +68,7 @@ function ReadyPage() {
     let unlisten: (() => void) | undefined;
 
     (async () => {
-      unlisten = await getCurrentWindow().onDragDropEvent((event) => {
+      unlisten = await getCurrentWindow().onDragDropEvent(async (event) => {
         if (event.payload.type !== "drop") return;
 
         const paths = event.payload.paths ?? [];
@@ -80,6 +84,9 @@ function ReadyPage() {
         setError("");
         setSelectedPath(firstPath);
         appStateActions.setSelectedFolder(firstPath);
+        const appSetting = await loadAppSettings();
+        appSetting.selectedFolder = firstPath;
+        await saveAppSettings(appSetting);
       });
     })();
 

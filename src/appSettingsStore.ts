@@ -1,5 +1,3 @@
-import { Store } from "@tauri-apps/plugin-store";
-
 export type Language = "ja" | "en";
 
 export type AppSettings = {
@@ -7,33 +5,51 @@ export type AppSettings = {
   language: Language;
 };
 
-const STORE_FILE = "app-settings.json";
+const STORAGE_KEY = "tag-atlas:app-settings";
 
-let storePromise: Promise<Store> | null = null;
-
-async function getStore(): Promise<Store> {
-  if (!storePromise) {
-    storePromise = Store.load(STORE_FILE);
-  }
-  return storePromise;
-}
-
-export async function loadAppSettings(): Promise<Partial<AppSettings>> {
-  const store = await getStore();
-
-  const selectedFolder = await store.get<string>("selectedFolder");
-  const language = await store.get<Language>("language");
-
+function getDefaultSettings(): AppSettings {
   return {
-    selectedFolder: selectedFolder ?? "",
-    language: language ?? "ja",
+    selectedFolder: "",
+    language: "ja",
   };
 }
 
-export async function saveAppSettings(settings: AppSettings): Promise<void> {
-  const store = await getStore();
+export async function loadAppSettings(): Promise<AppSettings> {
+  console.log("> loadAppSettings");
 
-  await store.set("selectedFolder", settings.selectedFolder);
-  await store.set("language", settings.language);
-  await store.save();
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      return getDefaultSettings();
+    }
+
+    const parsed = JSON.parse(raw) as Partial<AppSettings>;
+    console.log(parsed);
+    return {
+      selectedFolder: parsed.selectedFolder ?? "",
+      language: parsed.language ?? "ja",
+    };
+  } catch (e) {
+    console.error("loadAppSettings failed", e);
+    return getDefaultSettings();
+  }
+}
+
+export async function saveAppSettings(
+  settings: Partial<AppSettings>,
+): Promise<void> {
+  console.log("> saveAppSettings", settings);
+
+  try {
+    const current = await loadAppSettings();
+
+    const next: AppSettings = {
+      ...current,
+      ...settings,
+    };
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  } catch (e) {
+    console.error("saveAppSettings failed", e);
+  }
 }
