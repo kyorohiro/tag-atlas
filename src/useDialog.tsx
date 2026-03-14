@@ -417,5 +417,6 @@ export function useDialog() {
         showConfirmDialog,
         showProgressDialog,
         showSelectDialog,
+        push, pop
     };
 }

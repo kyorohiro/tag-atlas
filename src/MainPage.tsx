@@ -5,6 +5,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useDialog } from "./useDialog";
 import Database from "@tauri-apps/plugin-sql";
 import { openInFileManager } from "./openPath";
+import { TagEditDialog } from "./TagEditDialog";
 
 export function MainPage() {
     const appState = useAppState();
@@ -262,11 +263,33 @@ export function MainPage() {
                                 >
                                     Open
                                 </button>
+                                <button
+                                    className="rounded-lg border px-3 py-1 text-sm hover:bg-zinc-100"
+                                    onClick={async () => {
+                                        const id = `tag-edit:${item.path}:${Date.now()}`;
+
+                                        dialog.push({
+                                            id,
+                                            node: (
+                                                <TagEditDialog
+                                                    db={db!}
+                                                    path={item.path}
+                                                    onClose={() => dialog.pop(id)}
+                                                    onSaved={() => {
+                                                        dialog.pop(id);
+                                                    }}
+                                                />
+                                            ),
+                                        });
+                                    }}
+                                >
+                                Edit Tag
+                            </button>
                             </div>
                         ))}
-                    </div>
                 </div>
             </div>
-        </main>
+        </div>
+        </main >
     );
 }
