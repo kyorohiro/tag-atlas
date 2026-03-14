@@ -1,46 +1,87 @@
 import { useEffect, useRef, useState } from "react";
 import { useAppState } from "./AppStateContext";
-import { ensureWorkspaceDb } from "./db";
+import { addTagToPath, ensureWorkspaceDb } from "./db";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useDialog } from "./useDialog";
+import Database from "@tauri-apps/plugin-sql";
 
 export function MainScreen() {
   const appState = useAppState();
   const [dbPath, setDbPath] = useState("");
+  const [db, setDb] = useState<Database | null>(null);
   const [dbReady, setDbReady] = useState(false);
   const [dbError, setDbError] = useState("");
   const dialog = useDialog();
 
-  //
-  const initialized = useRef(false);
+  const dbRef = useRef<Database | null>(null);
+  const dialogRef = useRef(dialog);
+
   useEffect(() => {
-    let unlisten: (() => void) | undefined;
+    dbRef.current = db;
+  }, [db]);
+
+  useEffect(() => {
+    dialogRef.current = dialog;
+  }, [dialog]);
+
+  useEffect(() => {
+    let disposed = false;
+    let cleanup: (() => void) | undefined;
+
     (async () => {
-      if (initialized.current) {
-        return;
-      } else {
-        initialized.current = true;
-      }
-      unlisten = await getCurrentWindow().onDragDropEvent(async (event) => {
+      const unlisten = await getCurrentWindow().onDragDropEvent(async (event) => {
         if (event.payload.type !== "drop") return;
+
+        const currentDb = dbRef.current;
+        if (!currentDb) {
+          console.log(">> !currentDb");
+          return;
+        }
 
         const paths = event.payload.paths ?? [];
         if (paths.length === 0) return;
 
-        await dialog.showConfirmDialog({
-            title: "selected path",
-            body: `${event.payload.paths}`,
+        const currentDialog = dialogRef.current;
+
+        await currentDialog.showConfirmDialog({
+          title: "selected path",
+          body: `${paths.join("\n")}`,
         });
-        const tag = await dialog.showInputDialog({
-            title: "TAG を 追加",
-        })
-        
-        /** ここに、path と tag を DB に追加  */
+
+        const tag = await currentDialog.showInputDialog({
+          title: "TAG を追加",
+        });
+
+        if (!tag || !tag.trim()) return;
+
+        try {
+          for (const path of paths) {
+            await addTagToPath(currentDb, path, tag);
+          }
+
+          await currentDialog.showConfirmDialog({
+            title: "完了",
+            body: `${paths.length} 件の path に tag "${tag}" を追加しました`,
+          });
+        } catch (e) {
+          await currentDialog.showConfirmDialog({
+            title: "エラー",
+            body: String(e),
+          });
+        }
       });
+
+      if (disposed) {
+        unlisten();
+        return;
+      }
+
+      cleanup = unlisten;
     })();
 
     return () => {
-      if (unlisten) unlisten();
+      disposed = true;
+      if (cleanup) cleanup();
     };
   }, []);
 
@@ -51,10 +92,12 @@ export function MainScreen() {
       try {
         setDbReady(false);
         setDbError("");
+        setDb(null);
 
         const result = await ensureWorkspaceDb(appState.selectedFolder);
         if (!alive) return;
 
+        setDb(result.db);
         setDbPath(result.dbPath);
         setDbReady(true);
       } catch (e) {

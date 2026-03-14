@@ -1,6 +1,7 @@
 import Database from "@tauri-apps/plugin-sql";
 
 export const DB_FILENAME = ".tag-atlas.db";
+export const LATEST_SCHEMA_VERSION = 1;
 
 export function joinPath(folder: string, file: string): string {
   if (folder.endsWith("/") || folder.endsWith("\\")) {
@@ -14,10 +15,21 @@ export function normalizePath(path: string): string {
 }
 
 export async function ensureWorkspaceDb(rootFolder: string) {
+  console.log(`> ensureWorkspaceDb ${rootFolder}`);
   const dbPath = joinPath(rootFolder, DB_FILENAME);
-
   const db = await Database.load(`sqlite:${dbPath}`);
 
+  await ensureMetaTable(db);
+  await migrateDb(db);
+
+  return {
+    db,
+    dbPath,
+  };
+}
+
+async function ensureMetaTable(db: Database) {
+  console.log('> ensureMetaTable');
   await db.execute(`
     CREATE TABLE IF NOT EXISTS meta (
       key TEXT PRIMARY KEY,
@@ -27,9 +39,59 @@ export async function ensureWorkspaceDb(rootFolder: string) {
 
   await db.execute(`
     INSERT OR IGNORE INTO meta (key, value)
-    VALUES ('schema_version', '1')
+    VALUES ('schema_version', '0')
   `);
+}
 
+async function getSchemaVersion(db: Database): Promise<number> {
+  const rows = await db.select<{ value: string }[]>(
+    `
+      SELECT value
+      FROM meta
+      WHERE key = 'schema_version'
+    `,
+  );
+
+  if (!rows.length) {
+    return 0;
+  }
+
+  const version = Number(rows[0].value);
+  if (!Number.isFinite(version) || version < 0) {
+    throw new Error(`Invalid schema_version: ${rows[0].value}`);
+  }
+
+  return version;
+}
+
+async function setSchemaVersion(db: Database, version: number) {
+  await db.execute(
+    `
+      UPDATE meta
+      SET value = $1
+      WHERE key = 'schema_version'
+    `,
+    [String(version)],
+  );
+}
+
+async function migrateDb(db: Database) {
+  console.log('> migrateDb');
+  let version = await getSchemaVersion(db);
+
+  while (version < LATEST_SCHEMA_VERSION) {
+    if (version === 0) {
+      await migrate_0_to_1(db);
+      version = 1;
+      await setSchemaVersion(db, version);
+      continue;
+    }
+
+    throw new Error(`Unsupported schema version: ${version}`);
+  }
+}
+
+async function migrate_0_to_1(db: Database) {
   await db.execute(`
     CREATE TABLE IF NOT EXISTS path_tags (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,11 +111,6 @@ export async function ensureWorkspaceDb(rootFolder: string) {
     CREATE INDEX IF NOT EXISTS idx_path_tags_tag
     ON path_tags(tag)
   `);
-
-  return {
-    db,
-    dbPath,
-  };
 }
 
 export async function addTagToPath(
