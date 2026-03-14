@@ -54,6 +54,7 @@ Modern operating systems provide file search, but they usually lack simple multi
 
 tag-atlas focuses on:
 
+```
 simplicity
 
 local storage
@@ -67,9 +68,12 @@ Your data stays inside your folder.
 Version 0.1
 
 Initial prototype.
+```
+
 
 # Implemented:
 
+```
 root folder selection
 
 SQLite workspace database
@@ -79,9 +83,11 @@ drag & drop tagging
 tag search
 
 open location in file manager
+```
 
-Future ideas
+# Future ideas
 
+```
 Tag editing dialog
 
 Media / comic viewer
@@ -91,3 +97,4 @@ Faster search
 Tag suggestions
 
 Bulk tagging
+```
