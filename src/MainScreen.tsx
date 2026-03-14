@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useAppState } from "./AppStateContext";
+import { useAppActions, useAppState } from "./AppStateContext";
 import { addTagToPath, ensureWorkspaceDb, searchPathsByTag } from "./db";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useDialog } from "./useDialog";
@@ -8,6 +8,7 @@ import { openInFileManager } from "./openPath";
 
 export function MainScreen() {
     const appState = useAppState();
+    const appActions = useAppActions();
     const [dbPath, setDbPath] = useState("");
     const [db, setDb] = useState<Database | null>(null);
     const [dbReady, setDbReady] = useState(false);
@@ -190,7 +191,18 @@ export function MainScreen() {
     return (
         <main className="min-h-screen bg-zinc-100 p-8 text-zinc-900">
             <div className="mx-auto max-w-3xl rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-                <h1 className="text-2xl font-bold">tag-atlas</h1>
+                <div className="flex items-center justify-between gap-4">
+                    <button
+                        className="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm hover:bg-zinc-100"
+                        onClick={() => {
+                            appActions.setSelectedFolder("");
+                        }}
+                    >
+                        ← フォルダー選択に戻る
+                    </button>
+
+                    <h1 className="text-2xl font-bold">tag-atlas</h1>
+                </div>
 
                 <div className="mt-6 rounded-xl border p-4">
                     <div>selectedFolder:</div>
