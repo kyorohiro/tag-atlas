@@ -18,14 +18,19 @@
     {
       "identifier": "opener:allow-open-path",
       "allow": [
-        { "path": "**" }
+        {
+          "path": "**"
+        }
       ]
     },
     {
       "identifier": "fs:scope",
       "allow": [
-        { "path": "**" }
+        {
+          "path": "**"
+        }
       ]
-    }
+    },
+    "store:default"
   ]
 }

@@ -198,29 +198,14 @@ export function MainScreen() {
                             appActions.setSelectedFolder("");
                         }}
                     >
-                        ← フォルダー選択に戻る
+                        ← Back to Select Folder ({appState.selectedFolder})
                     </button>
 
                     <h1 className="text-2xl font-bold">tag-atlas</h1>
                 </div>
 
-                <div className="mt-6 rounded-xl border p-4">
-                    <div>selectedFolder:</div>
-                    <pre>{appState.selectedFolder}</pre>
-                </div>
-
                 <div className="mt-4 rounded-xl border p-4">
-                    <div>dbPath:</div>
-                    <pre>{dbPath}</pre>
-                </div>
-
-                <div className="mt-4 rounded-xl border p-4">
-                    <div>language:</div>
-                    <pre>{appState.language}</pre>
-                </div>
-
-                <div className="mt-4 rounded-xl border p-4">
-                    <div className="mb-2 font-semibold">TAG 検索</div>
+                    <div className="mb-2 font-semibold">TAG Search</div>
 
                     <input
                         type="text"

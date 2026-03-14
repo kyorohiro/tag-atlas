@@ -17,14 +17,14 @@ type UiText = {
 };
 
 const text: UiText = {
-  titleJa: "このアプリで管理するフォルダーを選択してください。",
+  titleJa: "",
   titleEn: "Please select a folder to manage with this app.",
-  button: "Folderを選択",
-  dropHereJa: "ここにフォルダーをドラッグ＆ドロップ",
+  button: "Select Folder",
+  dropHereJa: "",
   dropHereEn: "Drag and drop a folder here",
-  selectedJa: "選択されたフォルダー",
+  selectedJa: "",
   selectedEn: "Selected folder",
-  errorJa: "フォルダーを選択してください。",
+  errorJa: "",
   errorEn: "Please select a folder.",
 };
 
