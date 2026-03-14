@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useAppActions, useAppState, type AppState } from "./AppStateContext";
+import { useAppActions, useAppState } from "./AppStateContext";
 import { ReadyPage } from "./ReadyPage";
 import { MainPage } from "./MainPage";
 import { loadAppSettings } from "./appSettingsStore";

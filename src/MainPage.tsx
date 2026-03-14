@@ -11,7 +11,7 @@ import { toAbsolutePath, toStoredPath } from "./utilsPath";
 export function MainPage() {
     const appState = useAppState();
     const appActions = useAppActions();
-    const [dbPath, setDbPath] = useState("");
+    const [, setDbPath] = useState("");
     const [db, setDb] = useState<Database | null>(null);
     const [dbReady, setDbReady] = useState(false);
     const [dbError, setDbError] = useState("");

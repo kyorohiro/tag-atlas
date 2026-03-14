@@ -1,9 +1,3 @@
-import { dirname } from "@tauri-apps/api/path";
-import { exists } from "@tauri-apps/plugin-fs";
-import { platform } from "@tauri-apps/plugin-os";
-import { Command } from "@tauri-apps/plugin-shell";
-//import { open } from "@tauri-apps/plugin-shell";
-
 import { openPath, revealItemInDir } from "@tauri-apps/plugin-opener";
 import { stat } from "@tauri-apps/plugin-fs";
 
